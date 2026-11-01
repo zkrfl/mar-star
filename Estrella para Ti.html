@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Una Estrella Solo Para Ti</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Great+Vibes&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        * {
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: #030014;
+            color: #ffffff;
+            overflow: hidden;
+            margin: 0;
+            padding: 0;
+        }
+        .font-serif-title {
+            font-family: 'Cinzel', serif;
+        }
+        .font-cursive {
+            font-family: 'Great Vibes', cursive;
+        }
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+        }
+        /* Custom scrollbar for modals */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.6);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(217, 119, 6, 0.5);
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(245, 158, 11, 0.8);
+        }
+        /* Glassmorphic elements */
+        .glass-panel {
+            background: rgba(10, 15, 30, 0.75);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 215, 0, 0.25);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.7), inset 0 0 15px rgba(255, 215, 0, 0.05);
+        }
+        .glass-card {
+            background: rgba(20, 25, 45, 0.65);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+        /* Pulsing animations */
+        @keyframes pulseGlow {
+            0%, 100% { opacity: 0.4; transform: scale(1); }
+            50% { opacity: 0.8; transform: scale(1.05); }
+        }
+        .animate-pulse-glow {
+            animation: pulseGlow 4s infinite ease-in-out;
+        }
+        @keyframes floatSlow {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-8px); }
+        }
+        .animate-float {
+            animation: floatSlow 6s ease-in-out infinite;
+        }
+        /* Custom glow text */
+        .glow-text-gold {
+            text-shadow: 0 0 10px rgba(245, 158, 11, 0.6), 0 0 20px rgba(217, 119, 6, 0.4);
+        }
+        .glow-text-white {
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.8), 0 0 20px rgba(147, 197, 253, 0.5);
+        }
+    </style>
+</head>
+<body class="w-full h-screen relative overflow-hidden flex flex-col justify-between">
+
+    <!-- Canvas de fondo para el Universo, Nebulosas y Estrellas -->
+    <canvas id="spaceCanvas"></canvas>
+
+    <!-- Overlay Superior de Controles e Información -->
+    <header class="relative z-10 w-full p-4 md:p-6 flex justify-between items-center bg-gradient-to-b from-[#030014]/90 to-transparent pointer-events-none">
+        <div class="pointer-events-auto flex items-center space-x-3">
+            <div class="w-10 h-10 rounded-full bg-amber-500/20 border border-amber-400/40 flex items-center justify-center text-amber-300 shadow-lg shadow-amber-500/10">
+                <i data-lucide="sparkles" class="w-5 h-5"></i>
+            </div>
+            <div>
+                <h1 class="font-serif-title text-lg md:text-xl font-bold tracking-wider text-amber-100 glow-text-gold">
+                    Universo de Nuestro Amor
+                </h1>
+                <p class="text-xs text-blue-200/70">Para Mar • De Matias</p>
+            </div>
+        </div>
+
+        <!-- Controles Interactivos Superior Derecho -->
+        <div class="pointer-events-auto flex items-center space-x-2 md:space-x-3">
+            <!-- Botón Reproductor de Música Ambient -->
+            <button id="musicBtn" class="flex items-center space-x-2 px-3 py-2 rounded-full glass-card hover:bg-amber-500/20 border border-amber-500/30 text-amber-200 transition-all duration-300 text-xs md:text-sm">
+                <i data-lucide="music" id="musicIcon" class="w-4 h-4"></i>
+                <span id="musicText" class="hidden sm:inline">Música Mágica</span>
+            </button>
+            <!-- Botón Ver Certificado -->
+            <button id="certBtn" class="flex items-center space-x-2 px-3.5 py-2 rounded-full bg-gradient-to-r from-amber-600 to-yellow-500 hover:from-amber-500 hover:to-yellow-400 text-slate-950 font-semibold shadow-lg shadow-amber-500/20 transition-all duration-300 text-xs md:text-sm">
+                <i data-lucide="award" class="w-4 h-4"></i>
+                <span>Certificado</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Guía Flotante Central cuando inicia -->
+    <div id="hintBanner" class="relative z-10 self-center pointer-events-none mb-auto mt-4 px-6 py-2.5 rounded-full glass-card text-center text-xs md:text-sm text-blue-100/90 border border-blue-400/30 animate-pulse-glow transition-opacity duration-1000">
+        <span class="flex items-center gap-2">
+            <i data-lucide="pointer" class="w-4 h-4 text-amber-400 animate-bounce"></i>
+            Tocá la <strong class="text-amber-300">Estrella Central Radiante</strong> para abrir tu regalo especial
+        </span>
+    </div>
+
+    <!-- Barra Inferior de Frases Románticas Rápidas -->
+    <footer class="relative z-10 w-full p-4 md:p-6 flex flex-col sm:flex-row justify-between items-center gap-4 bg-gradient-to-t from-[#030014]/90 to-transparent">
+        <div class="glass-card px-4 py-2.5 rounded-2xl max-w-xl text-center sm:text-left flex items-center gap-3 border border-indigo-500/30">
+            <i data-lucide="heart" class="w-5 h-5 text-pink-400 shrink-0 fill-pink-500/30 animate-pulse"></i>
+            <p id="footerPhrase" class="text-xs md:text-sm text-blue-100/90 italic font-light">
+                "Sos el amor de mi vida, y eso nunca va a cambiar."
+            </p>
+        </div>
+
+        <div class="flex items-center gap-2">
+            <button id="randomStarBtn" class="px-4 py-2 rounded-xl glass-card hover:border-amber-400/50 text-amber-200 text-xs flex items-center gap-2 transition-all duration-300">
+                <i data-lucide="compass" class="w-4 h-4 text-amber-400"></i>
+                <span>Mensaje Secreto</span>
+            </button>
+            <button id="editStarNameBtn" title="Personalizar Nombre" class="p-2.5 rounded-xl glass-card hover:bg-white/10 text-slate-300 transition-all">
+                <i data-lucide="edit-3" class="w-4 h-4 text-amber-300"></i>
+            </button>
+        </div>
+    </footer>
+
+    <!-- MODAL 1: Tarjeta Romántica de la Estrella Principal -->
+    <div id="mainStarModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md opacity-0 pointer-events-none transition-opacity duration-500">
+        <div class="glass-panel w-full max-w-lg rounded-3xl p-6 md:p-8 relative text-center border-2 border-amber-400/40 shadow-2xl shadow-amber-500/10 transform scale-90 transition-transform duration-500" id="mainModalContent">
+            
+            <button class="closeModalBtn absolute top-4 right-4 text-slate-400 hover:text-white p-2 rounded-full hover:bg-white/10 transition">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+
+            <div class="w-20 h-20 mx-auto -mt-12 mb-4 rounded-full bg-gradient-to-tr from-amber-500 via-yellow-300 to-amber-100 p-1 shadow-xl shadow-amber-500/40 flex items-center justify-center animate-float">
+                <div class="w-full h-full rounded-full bg-slate-950 flex items-center justify-center">
+                    <i data-lucide="star" class="w-10 h-10 text-amber-300 fill-amber-300 animate-pulse"></i>
+                </div>
+            </div>
+
+            <span class="px-3 py-1 text-[10px] tracking-widest font-semibold uppercase bg-amber-500/20 text-amber-300 rounded-full border border-amber-400/30">
+                Estrella Oficial Registrada
+            </span>
+
+            <h2 id="displayStarTitle" class="font-serif-title text-2xl md:text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-yellow-400 to-amber-100 mt-3 glow-text-gold">
+                "Maius"
+            </h2>
+
+            <p class="text-xs text-amber-200/80 mt-1 font-mono" id="displayCoords">
+                Constelación: Mayo Eterno • RA 05h 35m / DEC +09° 56'
+            </p>
+
+            <div class="my-6 p-4 rounded-2xl bg-indigo-950/40 border border-indigo-500/20 text-left space-y-3">
+                <p class="text-sm md:text-base text-blue-100 leading-relaxed font-light">
+                    Esta estrella se llama <strong class="text-amber-300">Maius</strong> en honor a Mayo, el mes en que nos conocimos y cambió mi vida para siempre. Brilla bien alto para recordarte todo lo que te amo.
+                </p>
+                <p class="text-xs text-pink-300/90 italic font-serif">
+                    "Te amo desde el día en que escuché esa risa hermosa tuya. Mi bb de ojos profundos, te adoro."
+                </p>
+            </div>
+
+            <div class="flex flex-col sm:flex-row gap-3 justify-center">
+                <button id="openCertFromModal" class="px-6 py-3 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-400 text-slate-950 font-bold text-sm shadow-lg shadow-amber-500/25 hover:brightness-110 transition">
+                    Ver Certificado de Dedicatoria
+                </button>
+                <button class="closeModalBtn px-6 py-3 rounded-xl glass-card hover:bg-white/10 text-slate-200 text-sm font-medium transition">
+                    Mirar el Universo
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 2: Certificado Espacial Completo -->
+    <div id="certModal" class="fixed inset-0 z-50 flex items-center justify-center p-3 md:p-6 bg-slate-950/85 backdrop-blur-md opacity-0 pointer-events-none transition-opacity duration-500 overflow-y-auto">
+        <div class="w-full max-w-2xl bg-slate-900 border-4 border-amber-500/60 rounded-3xl p-6 md:p-10 relative text-center shadow-2xl shadow-amber-500/20 transform scale-90 transition-transform duration-500 my-auto" style="background-image: radial-gradient(circle at center, #0f172a 0%, #020617 100%);" id="certModalContent">
+            
+            <button class="closeModalBtn absolute top-4 right-4 text-slate-400 hover:text-white p-2 rounded-full hover:bg-white/10 transition">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+
+            <!-- Marco elegante interior -->
+            <div class="border border-amber-400/30 rounded-2xl p-6 md:p-8 relative">
+                <!-- Esquinas decorativas -->
+                <div class="absolute -top-2 -left-2 w-6 h-6 border-t-2 border-l-2 border-amber-400"></div>
+                <div class="absolute -top-2 -right-2 w-6 h-6 border-t-2 border-r-2 border-amber-400"></div>
+                <div class="absolute -bottom-2 -left-2 w-6 h-6 border-b-2 border-l-2 border-amber-400"></div>
+                <div class="absolute -bottom-2 -right-2 w-6 h-6 border-b-2 border-r-2 border-amber-400"></div>
+
+                <div class="flex justify-center mb-3">
+                    <i data-lucide="sparkle" class="w-8 h-8 text-amber-400 animate-spin" style="animation-duration: 12s;"></i>
+                </div>
+
+                <span class="text-xs uppercase tracking-widest font-semibold text-amber-400">Registro Estelar Celestial</span>
+                <h2 class="font-serif-title text-2xl md:text-4xl font-bold text-amber-200 mt-1 mb-4 glow-text-gold">
+                    Certificado de Amor Eterno
+                </h2>
+
+                <p class="text-xs md:text-sm text-slate-300 uppercase tracking-wider mb-2">Se hace saber a todo el Universo que la estrella</p>
+                
+                <div class="py-3 my-2 border-y border-amber-500/20">
+                    <h3 id="certStarName" class="font-cursive text-4xl md:text-5xl text-amber-300 glow-text-gold">
+                        Maius
+                    </h3>
+                </div>
+
+                <p class="text-xs md:text-sm text-slate-300 uppercase tracking-wider mt-2 mb-4">Ha sido bautizada y dedicada con todo mi corazón a:</p>
+
+                <p id="certPartnerName" class="font-serif-title text-xl md:text-2xl font-bold text-white mb-4 tracking-wide">
+                    Mar (Mi Bobis, Mi Bebé, Mi Meme, Mi Vida)
+                </p>
+
+                <p class="text-xs md:text-sm text-slate-400 italic max-w-lg mx-auto mb-6">
+                    "Sos el amor de mi vida, y eso nunca va a cambiar. Te amo más de lo que te imaginás, hoy y por siempre."
+                </p>
+
+                <div class="grid grid-cols-2 md:grid-cols-3 gap-3 text-left bg-slate-950/60 p-4 rounded-xl border border-slate-800 text-[11px] md:text-xs text-slate-400">
+                    <div>
+                        <span class="block text-slate-500">Coordenadas:</span>
+                        <strong class="text-amber-200">RA 05h 35m / DEC +09° 56'</strong>
+                    </div>
+                    <div>
+                        <span class="block text-slate-500">Origen:</span>
+                        <strong class="text-amber-200">Mes de Mayo</strong>
+                    </div>
+                    <div class="col-span-2 md:col-span-1">
+                        <span class="block text-slate-500">Luminosidad:</span>
+                        <strong class="text-amber-200">Infinita y Eterna</strong>
+                    </div>
+                </div>
+
+                <div class="mt-8 flex justify-between items-end border-t border-amber-500/20 pt-4">
+                    <div class="text-left">
+                        <span class="block text-[10px] text-slate-500">FECHA DE REGISTRO</span>
+                        <span id="certDate" class="text-xs text-amber-300 font-mono">--/--/----</span>
+                    </div>
+                    <div class="text-center">
+                        <div class="w-12 h-12 rounded-full border border-amber-400/40 mx-auto flex items-center justify-center text-amber-400 mb-1">
+                            <i data-lucide="heart-handshake" class="w-6 h-6"></i>
+                        </div>
+                        <span class="text-[9px] text-amber-400/80 uppercase tracking-wider">Sello de Matias</span>
+                    </div>
+                    <div class="text-right">
+                        <span class="block text-[10px] text-slate-500">DEDICADO POR</span>
+                        <span class="font-cursive text-xl text-amber-200">Matias (El amor de tu vida)</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-6 flex justify-center">
+                <button class="closeModalBtn px-8 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-sm shadow-lg shadow-amber-500/20 transition">
+                    Guardar en el Corazón
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 3: Frase Secreta / Estrella Secundaria -->
+    <div id="secretStarModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-300">
+        <div class="glass-panel w-full max-w-md rounded-2xl p-6 relative text-center border border-indigo-400/30 transform scale-90 transition-transform duration-300">
+            <button class="closeModalBtn absolute top-3 right-3 text-slate-400 hover:text-white p-1 rounded-full">
+                <i data-lucide="x" class="w-4 h-4"></i>
+            </button>
+            
+            <div class="w-12 h-12 mx-auto mb-3 rounded-full bg-indigo-500/20 border border-indigo-400/30 flex items-center justify-center text-pink-300">
+                <i data-lucide="sparkles" class="w-6 h-6"></i>
+            </div>
+
+            <span class="text-[10px] uppercase tracking-widest text-indigo-300 font-semibold">Mensaje de las Estrellas</span>
+            
+            <h3 id="secretStarTitle" class="font-serif-title text-lg font-bold text-amber-200 mt-1 mb-3">
+                Destello de Amor
+            </h3>
+
+            <p id="secretStarQuote" class="text-sm text-blue-100/90 leading-relaxed italic my-4 px-2">
+                "Frase misteriosa..."
+            </p>
+
+            <button class="closeModalBtn w-full py-2.5 rounded-xl bg-indigo-600/80 hover:bg-indigo-500 text-white font-medium text-xs transition">
+                Seguir Mirando el Cielo
+            </button>
+        </div>
+    </div>
+
+    <!-- MODAL 4: Customizar Nombres -->
+    <div id="editModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md opacity-0 pointer-events-none transition-opacity duration-300">
+        <div class="glass-panel w-full max-w-md rounded-2xl p-6 relative text-left border border-amber-400/30">
+            <button class="closeModalBtn absolute top-4 right-4 text-slate-400 hover:text-white p-1">
+                <i data-lucide="x" class="w-4 h-4"></i>
+            </button>
+
+            <h3 class="font-serif-title text-lg font-bold text-amber-200 mb-4 flex items-center gap-2">
+                <i data-lucide="settings" class="w-5 h-5 text-amber-400"></i> Personalizar Dedicatoria
+            </h3>
+
+            <div class="space-y-4 text-xs">
+                <div>
+                    <label class="block text-slate-300 mb-1 font-medium">Nombre de tu Pareja:</label>
+                    <input type="text" id="inputPartnerName" placeholder="Ej: Sofía, Carlos, Mi Amor..." class="w-full px-3 py-2 rounded-xl bg-slate-900/80 border border-slate-700 text-white focus:outline-none focus:border-amber-400">
+                </div>
+                <div>
+                    <label class="block text-slate-300 mb-1 font-medium">Nombre que le darás a la Estrella:</label>
+                    <input type="text" id="inputStarName" placeholder="Ej: Estrella de Sofía, Amor Eterno..." class="w-full px-3 py-2 rounded-xl bg-slate-900/80 border border-slate-700 text-white focus:outline-none focus:border-amber-400">
+                </div>
+            </div>
+
+            <div class="mt-6 flex justify-end gap-2">
+                <button class="closeModalBtn px-4 py-2 rounded-xl glass-card text-slate-300 text-xs">Cancelar</button>
+                <button id="saveNamesBtn" class="px-5 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs transition">Guardar Cambios</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script de Lógica Principal -->
+    <script>
+        // Inicialización de Iconos Lucide
+        lucide.createIcons();
+
+        // -------------------------------------------------------------
+        // ESTADO Y CONFIGURACIÓN INICIAL PERSONALIZADA
+        // -------------------------------------------------------------
+        const state = {
+            partnerName: localStorage.getItem('star_partner_name') || "Mar",
+            starName: localStorage.getItem('star_custom_name') || "Maius",
+            musicPlaying: false
+        };
+
+        const romanticPhrases = [
+            "Sos el amor de mi vida, y eso nunca va a cambiar.",
+            "Te amo más de lo que te imaginás.",
+            "Te amo desde el día en que escuché esa risa hermosa tuya.",
+            "Mi bb de ojos profundos, te adoro.",
+            "Sos mi princesa hermosa, y nunca lo dudes.",
+            "Te amo más que a nada en este mundo, mi meme.",
+            "Maius brilla en el cielo recordando el mes de Mayo en que te conocí."
+        ];
+
+        // Actualizar interfaz con nombres iniciales
+        function updateNamesUI() {
+            document.getElementById('certPartnerName').innerText = `${state.partnerName} (Mi Bobis, Mi Bebé, Mi Meme, Mi Vida)`;
+            document.getElementById('certStarName').innerText = state.starName;
+            document.getElementById('displayStarTitle').innerText = `"${state.starName}"`;
+        }
+        updateNamesUI();
+
+        // Poner fecha actual en certificado
+        const today = new Date();
+        document.getElementById('certDate').innerText = today.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
+
+        // -------------------------------------------------------------
+        // AUDIO AMBIENTAL CON WEB AUDIO API
+        // -------------------------------------------------------------
+        let audioCtx = null;
+        let isAudioPlaying = false;
+        let mainGainNode = null;
+        let audioInterval = null;
+
+        function initAudio() {
+            if (!audioCtx) {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                audioCtx = new AudioContext();
+                mainGainNode = audioCtx.createGain();
+                mainGainNode.gain.setValueAtTime(0.15, audioCtx.currentTime); // Volumen suave
+                mainGainNode.connect(audioCtx.destination);
+            }
+        }
+
+        // Notas relajantes (Pentatónica Mayor de Do / Sol)
+        const notes = [261.63, 293.66, 329.63, 392.00, 440.00, 523.25, 587.33, 659.25];
+
+        function playAmbientNote() {
+            if (!isAudioPlaying || !audioCtx) return;
+
+            const osc = audioCtx.createOscillator();
+            const noteGain = audioCtx.createGain();
+
+            // Elegir nota aleatoria
+            const freq = notes[Math.floor(Math.random() * notes.length)];
+            osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+
+            // Suavizado tipo campana cósmica / sinte suave
+            osc.type = 'sine';
+
+            const now = audioCtx.currentTime;
+            noteGain.gain.setValueAtTime(0, now);
+            noteGain.gain.linearRampToValueAtTime(0.08, now + 1.5);
+            noteGain.gain.exponentialRampToValueAtTime(0.0001, now + 5.5);
+
+            osc.connect(noteGain);
+            noteGain.connect(mainGainNode);
+
+            osc.start(now);
+            osc.stop(now + 6.0);
+        }
+
+        function toggleMusic() {
+            initAudio();
+
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+
+            isAudioPlaying = !isAudioPlaying;
+
+            const musicIcon = document.getElementById('musicIcon');
+            const musicText = document.getElementById('musicText');
+
+            if (isAudioPlaying) {
+                musicIcon.setAttribute('data-lucide', 'volume-2');
+                musicText.innerText = "Música: Encendida";
+                audioInterval = setInterval(playAmbientNote, 1800);
+                playAmbientNote();
+            } else {
+                musicIcon.setAttribute('data-lucide', 'music');
+                musicText.innerText = "Música: Pausada";
+                clearInterval(audioInterval);
+            }
+            lucide.createIcons();
+        }
+
+        document.getElementById('musicBtn').addEventListener('click', toggleMusic);
+
+        // -------------------------------------------------------------
+        // ANIMACIÓN DE FONDO CON CANVAS (Universo & Estrellas)
+        // -------------------------------------------------------------
+        const canvas = document.getElementById('spaceCanvas');
+        const ctx = canvas.getContext('2d');
+
+        let width = canvas.width = window.innerWidth;
+        let height = canvas.height = window.innerHeight;
+
+        let stars = [];
+        let particles = [];
+        let mainStar = null;
+
+        // Redimensionar responsivamente
+        window.addEventListener('resize', () => {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+            initStars();
+        });
+
+        // Clase Estrella Secundaria
+        class Star {
+            constructor(isInteractive = false) {
+                this.reset(isInteractive);
+            }
+
+            reset(isInteractive = false) {
+                this.x = Math.random() * width;
+                this.y = Math.random() * height;
+                this.size = isInteractive ? Math.random() * 2 + 2 : Math.random() * 1.5 + 0.5;
+                this.alpha = Math.random();
+                this.speed = Math.random() * 0.02 + 0.005;
+                this.isInteractive = isInteractive;
+                this.color = this.getRandomColor();
+                this.quote = romanticPhrases[Math.floor(Math.random() * romanticPhrases.length)];
+            }
+
+            getRandomColor() {
+                const colors = ['#ffffff', '#fff3d1', '#dbeaff', '#ffd1dc', '#e0c3fc'];
+                return colors[Math.floor(Math.random() * colors.length)];
+            }
+
+            update() {
+                this.alpha += this.speed;
+                if (this.alpha > 1 || this.alpha < 0.2) {
+                    this.speed = -this.speed;
+                }
+            }
+
+            draw() {
+                ctx.save();
+                ctx.globalAlpha = Math.abs(this.alpha);
+                ctx.fillStyle = this.color;
+
+                if (this.isInteractive) {
+                    // Resplandor para estrellas clicables secundarias
+                    ctx.shadowBlur = 8;
+                    ctx.shadowColor = this.color;
+                }
+
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            }
+        }
+
+        // Clase Estrella Principal (Regalo)
+        class MainStar {
+            constructor() {
+                this.x = width / 2;
+                this.y = height / 2;
+                this.baseSize = 14;
+                this.pulse = 0;
+            }
+
+            update() {
+                this.x = width / 2;
+                this.y = height / 2;
+                this.pulse += 0.03;
+            }
+
+            draw() {
+                const currentSize = this.baseSize + Math.sin(this.pulse) * 3;
+
+                ctx.save();
+
+                // 1. Halo brillante exterior
+                const outerGlow = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, currentSize * 6);
+                outerGlow.addColorStop(0, 'rgba(255, 215, 0, 0.4)');
+                outerGlow.addColorStop(0.4, 'rgba(245, 158, 11, 0.15)');
+                outerGlow.addColorStop(1, 'rgba(3, 0, 20, 0)');
+
+                ctx.fillStyle = outerGlow;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, currentSize * 6, 0, Math.PI * 2);
+                ctx.fill();
+
+                // 2. Destellos en cruz (Rayos de luz)
+                ctx.strokeStyle = 'rgba(255, 243, 205, 0.7)';
+                ctx.lineWidth = 2;
+
+                // Rayo Horizontal
+                ctx.beginPath();
+                ctx.moveTo(this.x - currentSize * 4, this.y);
+                ctx.lineTo(this.x + currentSize * 4, this.y);
+                ctx.stroke();
+
+                // Rayo Vertical
+                ctx.beginPath();
+                ctx.moveTo(this.x, this.y - currentSize * 4);
+                ctx.lineTo(this.x, this.y + currentSize * 4);
+                ctx.stroke();
+
+                // 3. Núcleo resplandeciente
+                const coreGrad = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, currentSize);
+                coreGrad.addColorStop(0, '#ffffff');
+                coreGrad.addColorStop(0.3, '#fffbeb');
+                coreGrad.addColorStop(0.7, '#fbbf24');
+                coreGrad.addColorStop(1, '#d97706');
+
+                ctx.fillStyle = coreGrad;
+                ctx.shadowBlur = 25;
+                ctx.shadowColor = '#f59e0b';
+
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, currentSize, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.restore();
+            }
+        }
+
+        // Partículas de explosión al hacer clic en la estrella principal
+        class SparkleParticle {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                const angle = Math.random() * Math.PI * 2;
+                const speed = Math.random() * 6 + 2;
+                this.vx = Math.cos(angle) * speed;
+                this.vy = Math.sin(angle) * speed;
+                this.life = 1;
+                this.decay = Math.random() * 0.02 + 0.015;
+                this.color = Math.random() > 0.5 ? '#ffe066' : '#ffffff';
+                this.size = Math.random() * 3 + 1;
+            }
+
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                this.life -= this.decay;
+            }
+
+            draw() {
+                if (this.life <= 0) return;
+                ctx.save();
+                ctx.globalAlpha = this.life;
+                ctx.fillStyle = this.color;
+                ctx.shadowBlur = 6;
+                ctx.shadowColor = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            }
+        }
+
+        // Inicializar estrellas
+        function initStars() {
+            stars = [];
+            const numStars = Math.floor((width * height) / 3000);
+            
+            for (let i = 0; i < numStars; i++) {
+                // Un 15% son estrellas interactivas secundarias
+                const isInteractive = Math.random() < 0.15;
+                stars.push(new Star(isInteractive));
+            }
+
+            mainStar = new MainStar();
+        }
+
+        // Dibujar nebulosa de fondo suave
+        function drawNebula() {
+            const grad1 = ctx.createRadialGradient(width * 0.3, height * 0.4, 50, width * 0.3, height * 0.4, width * 0.5);
+            grad1.addColorStop(0, 'rgba(76, 29, 149, 0.12)'); // Púrpura
+            grad1.addColorStop(1, 'transparent');
+
+            const grad2 = ctx.createRadialGradient(width * 0.7, height * 0.6, 50, width * 0.7, height * 0.6, width * 0.4);
+            grad2.addColorStop(0, 'rgba(30, 58, 138, 0.15)'); // Azul profundo
+            grad2.addColorStop(1, 'transparent');
+
+            ctx.fillStyle = grad1;
+            ctx.fillRect(0, 0, width, height);
+
+            ctx.fillStyle = grad2;
+            ctx.fillRect(0, 0, width, height);
+        }
+
+        // Bucle de Animación Principal
+        function animate() {
+            ctx.clearRect(0, 0, width, height);
+
+            // Dibujar fondo de espacio profundo y nebulosas
+            drawNebula();
+
+            // Actualizar y dibujar estrellas secundarias
+            stars.forEach(star => {
+                star.update();
+                star.draw();
+            });
+
+            // Actualizar y dibujar Estrella Principal
+            if (mainStar) {
+                mainStar.update();
+                mainStar.draw();
+            }
+
+            // Actualizar partículas de explosión de luz
+            particles.forEach((p, index) => {
+                p.update();
+                p.draw();
+                if (p.life <= 0) {
+                    particles.splice(index, 1);
+                }
+            });
+
+            requestAnimationFrame(animate);
+        }
+
+        // Disparar destello masivo de partículas
+        function triggerStarExplosion(x, y) {
+            for (let i = 0; i < 70; i++) {
+                particles.push(new SparkleParticle(x, y));
+            }
+        }
+
+        // -------------------------------------------------------------
+        // MANEJO DE CLICS E INTERACTIVIDAD CON EL CANAL
+        // -------------------------------------------------------------
+        canvas.addEventListener('click', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
+
+            // 1. Verificar si se hizo clic en la estrella principal
+            const distToMain = Math.hypot(mouseX - mainStar.x, mouseY - mainStar.y);
+            if (distToMain < 45) {
+                triggerStarExplosion(mainStar.x, mainStar.y);
+                openModal('mainStarModal');
+                
+                // Ocultar banner de ayuda inicial al interactuar
+                document.getElementById('hintBanner').classList.add('opacity-0');
+
+                // Sonido sutil al abrir si el audio está activo
+                if (isAudioPlaying && audioCtx) {
+                    playAmbientNote();
+                }
+                return;
+            }
+
+            // 2. Verificar si se hizo clic en alguna estrella interactiva secundaria
+            for (let star of stars) {
+                if (star.isInteractive) {
+                    const dist = Math.hypot(mouseX - star.x, mouseY - star.y);
+                    if (dist < 18) {
+                        triggerStarExplosion(star.x, star.y);
+                        showSecretStarModal(star.quote);
+                        return;
+                    }
+                }
+            }
+        });
+
+        // Mover el cursor al pasar por estrellas clicables
+        canvas.addEventListener('mousemove', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
+
+            let hovering = false;
+
+            // Hover sobre principal
+            if (Math.hypot(mouseX - mainStar.x, mouseY - mainStar.y) < 45) {
+                hovering = true;
+            } else {
+                // Hover sobre secundarias
+                for (let star of stars) {
+                    if (star.isInteractive && Math.hypot(mouseX - star.x, mouseY - star.y) < 18) {
+                        hovering = true;
+                        break;
+                    }
+                }
+            }
+
+            canvas.style.cursor = hovering ? 'pointer' : 'default';
+        });
+
+        // -------------------------------------------------------------
+        // CONTROL DE MODALES Y NAVEGACIÓN
+        // -------------------------------------------------------------
+        function openModal(modalId) {
+            const modal = document.getElementById(modalId);
+            const content = modal.querySelector('div');
+            modal.classList.remove('opacity-0', 'pointer-events-none');
+            modal.classList.add('opacity-100');
+            content.classList.remove('scale-90');
+            content.classList.add('scale-100');
+        }
+
+        function closeModal(modalId) {
+            const modal = document.getElementById(modalId);
+            const content = modal.querySelector('div');
+            modal.classList.remove('opacity-100');
+            modal.classList.add('opacity-0', 'pointer-events-none');
+            content.classList.remove('scale-100');
+            content.classList.add('scale-90');
+        }
+
+        // Event listener para cerrar modales
+        document.querySelectorAll('.closeModalBtn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const modal = e.target.closest('.fixed');
+                if (modal) closeModal(modal.id);
+            });
+        });
+
+        // Abrir Certificado
+        document.getElementById('certBtn').addEventListener('click', () => openModal('certModal'));
+        document.getElementById('openCertFromModal').addEventListener('click', () => {
+            closeModal('mainStarModal');
+            setTimeout(() => openModal('certModal'), 300);
+        });
+
+        // Mostrar Estrella Secreta Aleatoria
+        function showSecretStarModal(quote) {
+            const modalQuote = document.getElementById('secretStarQuote');
+            modalQuote.innerText = `"${quote}"`;
+            openModal('secretStarModal');
+        }
+
+        document.getElementById('randomStarBtn').addEventListener('click', () => {
+            const randomQuote = romanticPhrases[Math.floor(Math.random() * romanticPhrases.length)];
+            // Disparar explosión en un punto aleatorio
+            triggerStarExplosion(Math.random() * width, Math.random() * height * 0.8 + 100);
+            showSecretStarModal(randomQuote);
+        });
+
+        // Personalización de Nombres
+        const editModal = document.getElementById('editModal');
+        document.getElementById('editStarNameBtn').addEventListener('click', () => {
+            document.getElementById('inputPartnerName').value = state.partnerName;
+            document.getElementById('inputStarName').value = state.starName;
+            openModal('editModal');
+        });
+
+        document.getElementById('saveNamesBtn').addEventListener('click', () => {
+            const pName = document.getElementById('inputPartnerName').value.trim();
+            const sName = document.getElementById('inputStarName').value.trim();
+
+            if (pName) state.partnerName = pName;
+            if (sName) state.starName = sName;
+
+            localStorage.setItem('star_partner_name', state.partnerName);
+            localStorage.setItem('star_custom_name', state.starName);
+
+            updateNamesUI();
+            closeModal('editModal');
+        });
+
+        // Cambiar frases del footer periódicamente
+        let phraseIndex = 0;
+        setInterval(() => {
+            phraseIndex = (phraseIndex + 1) % romanticPhrases.length;
+            const footerEl = document.getElementById('footerPhrase');
+            footerEl.style.opacity = 0;
+            setTimeout(() => {
+                footerEl.innerText = `"${romanticPhrases[phraseIndex]}"`;
+                footerEl.style.opacity = 1;
+            }, 500);
+        }, 8000);
+
+        // -------------------------------------------------------------
+        // INICIAR EXPERIENCIA
+        // -------------------------------------------------------------
+        window.onload = () => {
+            initStars();
+            animate();
+        };
+    </script>
+</body>
+</html>
